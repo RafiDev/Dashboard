@@ -7,7 +7,18 @@ import axios from 'axios';
 const useStyles = makeStyles((theme) => ({
   root: {
     margin: 'auto',
-    paddingTop: theme.spacing(2),
+    paddingTop: theme.spacing(5),
+  },
+  AppBar: {
+    zIndex: theme.zIndex.drawer + 1,
+    position: 'fixed',
+  },
+  title: {
+    flexGrow: 1,
+    display: 'none',
+    [theme.breakpoints.up('sm')]: {
+      display: 'block',
+    },
   },
   search: {
     position: 'relative',
@@ -64,8 +75,7 @@ function MovieDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    const apiKey = 'd074cc6175548135eed2403642657dd3';
-    const URL = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}`;
+    const URL = `https://api.themoviedb.org/3/movie/popular?api_key=${process.env.REACT_APP_API_KEY}`;
 
     setIsLoading(true);
 
@@ -98,7 +108,7 @@ function MovieDashboard() {
   
   return(
     <div className={classes.root}>
-      <AppBar position="static">
+      <AppBar className={classes.AppBar}>
         <Toolbar>
           <Typography className={classes.title} variant="h6" noWrap>
             My Movie Dashboard
