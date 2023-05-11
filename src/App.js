@@ -1,104 +1,157 @@
 import React, { useState, useEffect } from "react";
-import Modal from "react-modal";
+import { makeStyles, alpha } from '@material-ui/core/styles';
+import { Grid, List, ListItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, AppBar, Toolbar, Typography, InputBase, } from '@material-ui/core';
+import SearchIcon from '@material-ui/icons/Search';
+import axios from 'axios';
 
-const customStyles = {
-  content: {
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
+const useStyles = makeStyles((theme) => ({
+  root: {
+    flexGrow: 1,
+    margin: theme.spacing(2),
   },
-};
+  search: {
+    position: 'relative',
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: alpha(theme.palette.common.white, 0.15),
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.common.white, 0.25),
+    },
+    marginRight: theme.spacing(2),
+    marginLeft: 0,
+    width: '100%',
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: theme.spacing(3),
+      width: 'auto',
+    },
+  },
+  searchIcon: {
+    padding: theme.spacing(0, 2),
+    height: '100%',
+    position: 'absolute',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inputRoot: {
+    color: 'inherit',
+  },
+  inputInput: {
+    padding: theme.spacing(1, 1, 1, 0),
+    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+    transition: theme.transitions.create('width'),
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '20ch',
+    },
+  },
+  list: {
+    margin: theme.spacing(2),
+  },
+  poster: {
+    marginRight: theme.spacing(2),
+  },
+}));
 
 function App() {
-  const [show, setShow] = useState(false);
+  const classes = useStyles();
+
   const [movies, setMovies] = useState([]);
+  const [filteredMovies, setFilteredMovies] = useState([]);
   const [searchBar, setSearchBar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    const API_KEY = 'your api key';
-    const URL = `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`;
+    const apiKey = 'd074cc6175548135eed2403642657dd3';
+    const URL = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}`;
 
     setIsLoading(true);
 
-    async function fetchMovies() {
-      const response = await fetch(URL);
-      const data = await response.json();
-      setMovies(data.results);
+    const fetchData = async() => {
+      const result = await axios.get(URL);
+      setMovies(result.data.results);
+      setFilteredMovies(result.data.results);
       setIsLoading(false);
-    }
-    fetchMovies();
+    };
+    fetchData();
   }, []);
 
-  const searchedMovies = movies.filter(movie => movie.title.toLowerCase().includes(searchBar.toLowerCase()));
-
-  const handleChange = event => {
-    setSearchBar(event.target.value);
-    setSelectedMovie(null);
+  const handleSearch = (event) => {
+    const value = event.target.value;
+    setSearchBar(value);
+    const filtered = movies.filter((movie) => {
+      return movie.title.toLowerCase().includes(value.toLowerCase());
+    });
+    setFilteredMovies(filtered);
   };
 
   const displayMovieDetails = movie => {
-    setShow(true);
     setSelectedMovie(movie);
+    setDialogOpen(true);
   };
 
   const handleClose = () => {
-    setShow(false);
+    setDialogOpen(false);
   }
-
+  
   return(
-    <div className="App">
-      <h1>Movie Dashboard</h1>
-      <input
-        type="text"
-        placeholder="Search movies..."
-        value={searchBar}
-        onChange={handleChange}
-      />
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : (
-        <ul>
-          {searchedMovies.map(movie => (
-            <li key={movie.id} onClick={() => displayMovieDetails(movie)}>
-              <img
-                src={`https://image.tmdb.org/t/p/w200${movie.poster_path}`}
-                alt={`${movie.target} Poster`}
-              />
-              <div>
-                <h3>{movie.title}</h3>
-              </div>
-            </li>
-          ))}
-        </ul>
+    <div className={classes.root}>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography className={classes.title} variant="h6" noWrap>
+            My Movie Dashboard
+          </Typography>
+          <div className={classes.search}>
+            <div className={classes.searchIcon}>
+              <SearchIcon />
+            </div>
+            <InputBase
+              placeholder="Search…"
+              classes={{
+                root: classes.inputRoot,
+                input: classes.inputInput,
+              }}
+              inputProps={{ 'aria-label': 'search' }}
+              value={searchBar}
+              onChange={handleSearch}
+            />
+          </div>
+        </Toolbar>
+      </AppBar>
+      {isLoading ? (<p>Loading...</p>) : (
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <List className={classes.list}>
+              {filteredMovies.map((movie) => (
+                <ListItem key={movie.id} button onClick={() => displayMovieDetails(movie)}>
+                  <img src={`https://image.tmdb.org/t/p/w185${movie.poster_path}`} alt={movie.title} className={classes.poster} />
+                  <ListItemText primary={movie.title} secondary={movie.release_date} />
+                </ListItem>
+              ))}
+            </List>
+          </Grid>
+        </Grid>
       )}
-      {selectedMovie && (
-        <Modal
-        isOpen={show}
-        onRequestClose={handleClose}
-        style={customStyles}
-        contentLabel="Example Modal"
+      <Dialog 
+        open={dialogOpen}
+        onClose={handleClose} 
+        style={{ maxWidth: "100%", maxHeight: "100%" }}
       >
-        <div>
-          <h3>{selectedMovie.title}</h3>
-          <img
-            src={`https://image.tmdb.org/t/p/w200${selectedMovie.poster_path}`}
-            alt={`${selectedMovie.target} Poster`}
-          />
-          <p>
-            Released on {selectedMovie.release_date} - Note : {selectedMovie.vote_average}/10
-          </p>
-          <p>{selectedMovie.overview}</p>
-        </div>
-        <form>
-          <button onClick={handleClose}>close</button>
-        </form>
-      </Modal>
-      )}
+        {selectedMovie && 
+          <img 
+            style={{ width: '100%', height: '100%',}}
+            src={`https://image.tmdb.org/t/p/w200${selectedMovie.poster_path}`} 
+            alt={selectedMovie.title}
+          />}
+        <DialogTitle>{selectedMovie && selectedMovie.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {selectedMovie && selectedMovie.overview}
+          </DialogContentText>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
