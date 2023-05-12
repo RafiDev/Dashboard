@@ -6,7 +6,8 @@
     1- Clone the repository to your local machine.
     2- Go to Dashboard/
     3- Install the dependencies by running npm install --legacy-peer-deps.
-    4- On the web, run npm start.
+    4- create a '.env' file at the root of the project and note your api key inside, in this format: REACT_APP_API_KEY=your_api_key
+    5- run npm start.
 
 
 ### DEPENDENCIES
@@ -31,7 +32,8 @@
 
 
 ### DIRECTORIES STRUCTURE
-    screen
+    Screen
+    Composant
 
 
 ### FILES STRUCTURE
@@ -48,4 +50,7 @@
 
     Screen
         MovieDashboard.js
+    
+    Composant
+        sortButton.js
 

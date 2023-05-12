@@ -3,6 +3,7 @@ import { makeStyles, alpha } from '@material-ui/core/styles';
 import { Grid, List, ListItem, ListItemText, Dialog, DialogTitle, DialogContent, DialogContentText, AppBar, Toolbar, Typography, InputBase, } from '@material-ui/core';
 import SearchIcon from '@material-ui/icons/Search';
 import axios from 'axios';
+import SortButton from "../Composant/sortButton";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -72,6 +73,7 @@ function MovieDashboard() {
   const [searchBar, setSearchBar] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [sortParam, setSortParam] = useState('popular');
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -97,6 +99,20 @@ function MovieDashboard() {
     setFilteredMovies(filtered);
   };
 
+  const handleSortChange = (option) => {
+    setSortParam(option);
+  }
+
+  const sortedMovies = movies.sort((a, b) => {
+    if (sortParam === "popular") {
+      return b.popular - a.popular
+    } else if (sortParam === "release_date") {
+      return new Date(a.release_date) - new Date(b.release_date);
+    } else {
+      return b.vote_average - a.vote_average;
+    }
+  });
+
   const displayMovieDetails = movie => {
     setSelectedMovie(movie);
     setDialogOpen(true);
@@ -113,6 +129,9 @@ function MovieDashboard() {
           <Typography className={classes.title} variant="h6" noWrap>
             My Movie Dashboard
           </Typography>
+          <div>
+            <SortButton handleSort={handleSortChange}/>
+          </div>
           <div className={classes.search}>
             <div className={classes.searchIcon}>
               <SearchIcon />
@@ -138,6 +157,7 @@ function MovieDashboard() {
                 <ListItem key={movie.id} button onClick={() => displayMovieDetails(movie)}>
                   <img src={`https://image.tmdb.org/t/p/w185${movie.poster_path}`} alt={movie.title} className={classes.poster} />
                   <ListItemText primary={movie.title} secondary={movie.release_date} />
+                  <p>score: {movie.vote_average}</p>
                 </ListItem>
               ))}
             </List>
@@ -158,6 +178,7 @@ function MovieDashboard() {
         <DialogTitle>{selectedMovie && selectedMovie.title}</DialogTitle>
         <DialogContent>
           <DialogContentText>
+            <p>score: {selectedMovie && selectedMovie.vote_average}</p>
             {selectedMovie && selectedMovie.overview}
           </DialogContentText>
         </DialogContent>
